@@ -47,7 +47,10 @@ export default function Navbar() {
 
           {/* CTA Button */}
           <a
-            href="#download"
+            href="https://apps.apple.com/us/app/stepzsync/id6752641870"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Download StepzSync on the App Store"
             className="hidden md:block bg-[#2759FF] text-white px-5 py-2.5 rounded-full font-medium hover:bg-[#1e47cc] transition-colors"
           >
             Get the App
@@ -83,7 +86,11 @@ export default function Navbar() {
                 </a>
               ))}
               <a
-                href="#download"
+                href="https://apps.apple.com/us/app/stepzsync/id6752641870"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Download StepzSync on the App Store"
+                onClick={() => setMobileMenuOpen(false)}
                 className="bg-[#2759FF] text-white px-5 py-3 rounded-full font-medium text-center mt-4"
               >
                 Get the App
