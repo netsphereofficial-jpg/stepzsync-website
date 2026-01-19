@@ -3,7 +3,9 @@ import Navbar from './components/Navbar'
 import Hero from './components/Hero'
 import HowItWorks from './components/HowItWorks'
 import WhyDifferent from './components/WhyDifferent'
+import AppGallery from './components/AppGallery'
 import RaceTypes from './components/RaceTypes'
+import Leaderboard from './components/Leaderboard'
 import Social from './components/Social'
 import GlobalMarathons from './components/GlobalMarathons'
 import FinalCTA from './components/FinalCTA'
@@ -17,7 +19,9 @@ function App() {
         <Hero />
         <HowItWorks />
         <WhyDifferent />
+        <AppGallery />
         <RaceTypes />
+        <Leaderboard />
         <Social />
         <GlobalMarathons />
         <FinalCTA />

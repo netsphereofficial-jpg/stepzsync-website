@@ -181,3 +181,18 @@ body {
 .animate-travel {
   animation: travel 4s linear infinite;
 }
+
+/* Phone mockup mini for gallery */
+.phone-frame-mini {
+  aspect-ratio: 9 / 19.5;
+  background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
+  padding: 8px;
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Red glow effect */
+.glow-red {
+  box-shadow: 0 0 20px rgba(255, 46, 99, 0.4);
+}
