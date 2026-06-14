@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["F7KVCCY935.com.health.stepzsync.stepzsync"],
+        "components": [
+          { "/": "/race/*", "comment": "Open race map for the given race ID" },
+          { "/": "/invite/*", "comment": "Claim referral code" },
+          { "/": "/profile/*", "comment": "Open public profile" }
+        ]
+      }
+    ]
+  }
+}

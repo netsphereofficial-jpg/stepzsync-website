@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.netsphere.stepzsync",
+      "sha256_cert_fingerprints": [
+        "83:A8:02:41:BA:83:FD:F9:D3:32:A3:08:AC:18:87:5A:BB:F2:09:7D:DF:6D:8F:F8:00:C3:79:0C:CC:D0:04:44"
+      ]
+    }
+  }
+]
