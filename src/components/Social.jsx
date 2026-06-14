@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 export default function Social() {
   const features = [
     {
@@ -29,22 +31,117 @@ export default function Social() {
     }
   ];
 
+  // ---- Canonical scroll-reveal (dependency-free, build/no-JS safe) ----
+  const sectionRef = useRef(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    // Mark body as mounted so .reveal's hidden base state can engage
+    // (CSS gates the hidden state under body[data-mounted]).
+    document.body.dataset.mounted = "true";
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setShown(true);
+      return;
+    }
+    const el = sectionRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShown(true);
+          io.unobserve(el);
+        }
+      },
+      { threshold: 0.15, rootMargin: "0px 0px -12% 0px" }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // ---- Counter-parallax for floating cards (rAF, ref-driven, fine-pointer) ----
+  const floatNotifRef = useRef(null);
+  const floatOnlineRef = useRef(null);
+  const floatHeartRef = useRef(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    let ticking = false;
+    const apply = () => {
+      ticking = false;
+      const isMobile = window.innerWidth < 768;
+      const factor = isMobile ? 0.025 : 0.05;
+      // Counter-parallax: floating cards drift opposite the scroll for depth.
+      const raw = (window.scrollY - (window.innerHeight || 0)) * factor;
+      const y = Math.max(-40, Math.min(40, raw));
+      if (floatNotifRef.current)
+        floatNotifRef.current.style.setProperty("--parallax", `${(-y).toFixed(1)}px`);
+      if (floatOnlineRef.current)
+        floatOnlineRef.current.style.setProperty("--parallax", `${y.toFixed(1)}px`);
+      if (floatHeartRef.current)
+        floatHeartRef.current.style.setProperty("--parallax", `${(-y * 0.6).toFixed(1)}px`);
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(apply);
+      }
+    };
+    apply();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // ---- Optional hover tilt on feature cards (fine-pointer only) ----
+  const handleTiltMove = (e) => {
+    const card = e.currentTarget;
+    const r = card.getBoundingClientRect();
+    const px = (e.clientX - r.left) / r.width;
+    const py = (e.clientY - r.top) / r.height;
+    const rx = (0.5 - py) * 6;
+    const ry = (px - 0.5) * 6;
+    card.style.transform = `perspective(800px) rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg) translateY(-4px)`;
+    card.style.setProperty("--mx", `${(px * 100).toFixed(1)}%`);
+    card.style.setProperty("--my", `${(py * 100).toFixed(1)}%`);
+  };
+  const handleTiltLeave = (e) => {
+    const card = e.currentTarget;
+    card.style.transform = "";
+  };
+
+  // Staggered reveal delay helper for the left column beat (header -> body
+  // -> supporting). Returns 0 until shown so nothing is trapped.
+  const beat = (ms) => ({ transitionDelay: shown ? `${ms}ms` : "0ms" });
+
   return (
-    <section id="social" className="py-24 lg:py-32 bg-[#0A0A0A] relative overflow-hidden">
-      {/* Background accent */}
-      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-[#FF2E63] rounded-full opacity-5 blur-3xl -translate-y-1/2"></div>
+    <section
+      id="social"
+      ref={sectionRef}
+      style={{ scrollMarginTop: "96px" }}
+      className={`section-anchor py-24 lg:py-32 bg-[#0A0A0A] relative overflow-hidden ${shown ? "is-visible" : ""}`}
+    >
+      {/* Background accent — pink orb, atmospheric drift */}
+      <div className="absolute top-1/2 right-0 w-[500px] h-[500px] bg-[#FF2E63] rounded-full opacity-5 blur-3xl -translate-y-1/2 animate-float motion-reduce:animate-none pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
           {/* Left Content */}
           <div className="space-y-8">
-            {/* Eyebrow */}
-            <p className="text-[#FF2E63] uppercase tracking-[0.2em] text-sm font-medium">
+            {/* Eyebrow — neon-pink owned accent, locks in on reveal */}
+            <p
+              className={`reveal eyebrow-lock ${shown ? "is-visible" : ""} text-[#FF2E63] uppercase text-xs md:text-sm font-semibold`}
+              style={beat(0)}
+            >
               Better Together
             </p>
 
             {/* Headline */}
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+            <h2
+              className={`reveal ${shown ? "is-visible" : ""} text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.1]`}
+              style={beat(90)}
+            >
               Walk With Friends.<br/>
               <span className="text-[#FF2E63]">Compete With the World.</span>
             </h2>
@@ -54,23 +151,31 @@ export default function Social() {
               {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="bg-[#021F29] border border-[#0F3460]/50 rounded-2xl p-5 card-hover"
+                  className={`reveal ${shown ? "is-visible" : ""} group relative bg-[#021F29] border border-[#0F3460]/50 rounded-2xl p-5 card-hover hover:border-[#FF2E63]/40 transition-all duration-300 [transform-style:preserve-3d]`}
+                  style={{ transitionDelay: shown ? `${180 + Math.min(index, 4) * 80}ms` : "0ms" }}
+                  onPointerMove={handleTiltMove}
+                  onPointerLeave={handleTiltLeave}
                 >
-                  <div className="flex gap-4">
+                  {/* pointer-following glow, gated to fine-pointer via .tilt-glow */}
+                  <div className="tilt-glow"></div>
+                  <div className="relative flex gap-4">
                     <div className="flex-shrink-0">
                       {feature.icon}
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold mb-1">{feature.title}</h3>
-                      <p className="text-gray-400 text-sm">{feature.description}</p>
+                      <h3 className="text-lg font-bold mb-1">{feature.title}</h3>
+                      <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Social Proof */}
-            <div className="flex items-center gap-4 pt-4">
+            {/* Social Proof — fades in last */}
+            <div
+              className={`reveal ${shown ? "is-visible" : ""} flex items-center gap-4 pt-4`}
+              style={beat(450)}
+            >
               <div className="flex -space-x-3">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
@@ -86,16 +191,19 @@ export default function Social() {
                 </div>
               </div>
               <p className="text-gray-400 text-sm">
-                Join <span className="text-white font-semibold">10,000+</span> active walkers
+                Join <span className="text-white font-semibold num-tabular">10,000+</span> active walkers
               </p>
             </div>
           </div>
 
           {/* Right Content - Phone with Messages */}
-          <div className="relative flex justify-center lg:justify-end">
+          <div
+            className={`reveal ${shown ? "is-visible" : ""} relative flex justify-center lg:justify-end`}
+            style={beat(180)}
+          >
             <div className="relative">
-              {/* Main Phone */}
-              <div className="phone-frame w-[280px] md:w-[300px] animate-float">
+              {/* Main Phone — anchored foreground, gentle float */}
+              <div className="phone-frame w-[280px] md:w-[300px] animate-float motion-reduce:animate-none">
                 <div className="phone-screen">
                   <img
                     src="/images/messages-list.jpeg"
@@ -105,8 +213,13 @@ export default function Social() {
                 </div>
               </div>
 
-              {/* Floating Notification Cards */}
-              <div className="absolute -left-8 top-16 bg-[#021F29] border border-[#0F3460] rounded-xl p-4 shadow-xl transform -rotate-3 animate-float" style={{animationDelay: '0.5s'}}>
+              {/* Floating Notification Card — overflow-prone at 375px, show >=sm.
+                  Counter-parallax drift via --parallax on top of the float loop. */}
+              <div
+                ref={floatNotifRef}
+                className="hidden sm:block absolute -left-8 top-16 bg-[#021F29] border border-[#0F3460] rounded-xl p-4 shadow-xl animate-float motion-reduce:animate-none"
+                style={{ animationDelay: "0.5s", transform: "translateY(var(--parallax, 0px)) rotate(-3deg)" }}
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#00BFFF] to-[#2759FF]"></div>
                   <div>
@@ -116,21 +229,29 @@ export default function Social() {
                 </div>
               </div>
 
-              {/* Online Friends Indicator */}
-              <div className="absolute -right-4 bottom-24 bg-[#021F29] border border-[#39FF14]/30 rounded-xl px-4 py-2 glow-green">
+              {/* Online Friends Indicator — overflow-prone at 375px, show >=sm. */}
+              <div
+                ref={floatOnlineRef}
+                className="hidden sm:block absolute -right-4 bottom-24 bg-[#021F29] border border-[#39FF14]/30 rounded-xl px-4 py-2 glow-green"
+                style={{ transform: "translateY(var(--parallax, 0px))" }}
+              >
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
                     <div className="w-6 h-6 rounded-full bg-[#FF6B35] border border-[#021F29]"></div>
                     <div className="w-6 h-6 rounded-full bg-[#00BFFF] border border-[#021F29]"></div>
                     <div className="w-6 h-6 rounded-full bg-[#FF2E63] border border-[#021F29]"></div>
                   </div>
-                  <span className="text-[#39FF14] text-xs font-medium">3 friends online</span>
+                  <span className="text-[#39FF14] text-xs font-medium num-tabular">3 friends online</span>
                 </div>
               </div>
 
-              {/* Heart Animation */}
-              <div className="absolute -right-8 top-1/3">
-                <svg className="w-6 h-6 text-[#FF2E63] animate-bounce" fill="currentColor" viewBox="0 0 20 20" style={{animationDelay: '0.2s'}}>
+              {/* Heart Animation — slight counter-parallax for depth */}
+              <div
+                ref={floatHeartRef}
+                className="absolute -right-8 top-1/3"
+                style={{ transform: "translateY(var(--parallax, 0px))" }}
+              >
+                <svg className="w-6 h-6 text-[#FF2E63] animate-bounce motion-reduce:animate-none" fill="currentColor" viewBox="0 0 20 20" style={{animationDelay: '0.2s'}}>
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd"/>
                 </svg>
               </div>

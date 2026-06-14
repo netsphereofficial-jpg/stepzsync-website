@@ -1,4 +1,30 @@
+import { useRef, useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+
 export default function Footer() {
+  // Self-contained, dependency-free scroll-reveal (build/no-JS safe).
+  const ref = useRef(null);
+  const [shown, setShown] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setShown(true);
+      return;
+    }
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setShown(true);
+          io.unobserve(el);
+        }
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -12% 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
   const productLinks = [
     { name: "Features", href: "#how-it-works" },
     { name: "Race Types", href: "#race-types" },
@@ -14,9 +40,9 @@ export default function Footer() {
   ];
 
   const legalLinks = [
-    { name: "Privacy Policy", href: "#" },
-    { name: "Terms of Service", href: "#" },
-    { name: "Cookie Policy", href: "#" }
+    { name: "Privacy Policy", href: "/privacy-policy" },
+    { name: "Terms of Service", href: "/terms-of-service" },
+    { name: "Delete Account", href: "/delete-account" }
   ];
 
   const socialLinks = [
@@ -50,12 +76,12 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-[#0A0A0A] border-t border-[#16213E] py-16">
+    <footer ref={ref} className={`reveal ${shown ? 'is-visible' : ''} bg-[#0A0A0A] border-t border-[#16213E] py-16`}>
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Column */}
           <div className="lg:col-span-1">
-            <a href="#" className="flex items-center gap-1 text-2xl font-bold mb-4">
+            <a href="#" className="inline-flex items-center gap-1 text-2xl font-bold mb-4 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00D4FF]">
               <span className="text-white">Stepz</span>
               <span className="text-[#39FF14]">Sync</span>
             </a>
@@ -68,7 +94,7 @@ export default function Footer() {
                 <a
                   key={social.name}
                   href={social.href}
-                  className="text-gray-500 hover:text-[#2759FF] transition-colors"
+                  className="text-gray-500 hover:text-[#2759FF] transition-colors rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2759FF]"
                   aria-label={social.name}
                 >
                   {social.icon}
@@ -83,7 +109,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {productLinks.map((link) => (
                 <li key={link.name}>
-                  <a href={link.href} className="text-gray-500 hover:text-white transition-colors text-sm">
+                  <a href={link.href} className="text-gray-500 hover:text-white transition-colors text-sm rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00D4FF]">
                     {link.name}
                   </a>
                 </li>
@@ -97,7 +123,7 @@ export default function Footer() {
             <ul className="space-y-3">
               {companyLinks.map((link) => (
                 <li key={link.name}>
-                  <a href={link.href} className="text-gray-500 hover:text-white transition-colors text-sm">
+                  <a href={link.href} className="text-gray-500 hover:text-white transition-colors text-sm rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00D4FF]">
                     {link.name}
                   </a>
                 </li>
@@ -108,18 +134,44 @@ export default function Footer() {
           {/* Download */}
           <div>
             <h4 className="text-white font-semibold mb-4">Get the App</h4>
-            <div className="space-y-3">
-              <a href="#" className="flex items-center gap-3 bg-[#021F29] border border-[#0F3460] rounded-xl px-4 py-3 hover:border-[#2759FF] transition-colors">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
+            <p className="flex items-center gap-2 text-gray-500 text-xs mb-4">
+              <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#39FF14] animate-pulse motion-reduce:animate-none" aria-hidden="true"></span>
+              Live now — race worldwide
+            </p>
+            {/* Two real store badges, responsive row: stack on mobile, side-by-side from sm. */}
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3">
+              <a
+                href="https://apps.apple.com/us/app/stepzsync/id6752641870"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Download StepzSync on the App Store"
+                className="btn-secondary group flex items-center gap-3 px-4 py-3"
+              >
+                <svg className="w-8 h-8 text-white transition-transform group-hover:scale-110" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                 </svg>
-                <span className="text-white text-sm">App Store</span>
+                <div className="text-left">
+                  <div className="text-xs opacity-90">Download on the</div>
+                  <div className="text-lg font-bold -mt-1">App Store</div>
+                </div>
               </a>
-              <a href="#" className="flex items-center gap-3 bg-[#021F29] border border-[#0F3460] rounded-xl px-4 py-3 hover:border-[#2759FF] transition-colors">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3.609 1.814L13.792 12 3.61 22.186a.996.996 0 01-.61-.92V2.734a1 1 0 01.609-.92zm10.89 10.893l2.302 2.302-10.937 6.333 8.635-8.635zm3.199-3.198l2.807 1.626a1 1 0 010 1.73l-2.808 1.626L15.206 12l2.492-2.491zM5.864 2.658L16.8 8.99l-2.302 2.302-8.634-8.634z"/>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.netsphere.stepzsync"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Get StepzSync on Google Play"
+                className="btn-secondary group flex items-center gap-3 px-4 py-3"
+              >
+                <svg className="w-8 h-8 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                  <path d="M3.6 1.8 13.4 12 3.6 22.2c-.4-.2-.6-.6-.6-1.1V2.9c0-.5.2-.9.6-1.1z" fill="#00D4FF"/>
+                  <path d="M16.8 8.4 13.4 12l-2.4-2.4 3.4-3.4 2.4 2.2z" fill="#39FF14"/>
+                  <path d="M16.8 15.6 14.4 17.8 11 14.4 13.4 12l3.4 3.6z" fill="#FF2E63"/>
+                  <path d="M20.4 10.9c.7.4.7 1.8 0 2.2l-3.6 2.5-2.6-2.6 2.6-2.6 3.6 2.5z" fill="#FF6B35"/>
                 </svg>
-                <span className="text-white text-sm">Google Play</span>
+                <div className="text-left">
+                  <div className="text-xs opacity-90">GET IT ON</div>
+                  <div className="text-lg font-bold -mt-1">Google Play</div>
+                </div>
               </a>
             </div>
           </div>
@@ -132,13 +184,13 @@ export default function Footer() {
           </p>
           <div className="flex gap-6">
             {legalLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
-                href={link.href}
-                className="text-gray-600 hover:text-gray-400 transition-colors text-sm"
+                to={link.href}
+                className="text-gray-600 hover:text-gray-400 transition-colors text-sm rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#00D4FF]"
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
           </div>
         </div>
